@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Canvas test</title>
+    <!-- Leaflet CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/leaflet.js"></script>
+
+    <!-- Leaflet Draw control -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+
+</head>
+<body>
+    
+    <div id="map" style="width: 1000px; height: 500px;"></div>
+
+    <script>
+    const map = L.map('map', {
+        crs: L.CRS.Simple,
+        drawControl: true,
+    });
+
+    // Set the bounds to the extent of the image
+    let bounds = [[0,0], [1000,1000]];
+    let image = L.imageOverlay('33a0c8_2a20866012684002852095b34c4223f6~mv2.jpg', bounds).addTo(map);
+
+    // Tell leaflet that the map is exactly as big as the image
+    map.fitBounds(bounds);
+
+    const editableLayers = new L.FeatureGroup();
+    map.addLayer(editableLayers);
+
+    map.on(L.Draw.Event.CREATED, function (e) {
+        var type = e.layerType,
+            layer = e.layer;
+    
+        editableLayers.addLayer(layer);
+
+        console.log('on(L.CREATED)', editableLayers.getLayers()[0].getBounds());
+        console.log('on(L.CREATED)', editableLayers.getLayers());
+
+    });
+
+    // on Draw Event ended, get the bounds of the polygon
+    // and create a new image element from the image data
+    // within the bounds of the polygon
+    map.on(L.Draw.Event.DRAWSTOP, e => {
+        // Get the bounds of the polygon
+        let polygonBounds = editableLayers.getLayers()[0].getBounds();
+        console.log('DRAWSTOP poly bounds', polygonBounds)
+        console.log('DRAWSTOP poly layers', editableLayers.getLayers())
+
+        // First, we need to get the position of the polygon on the image
+        let topLeft = map.latLngToLayerPoint(polygonBounds._northEast);
+        let bottomRight = map.latLngToLayerPoint(polygonBounds._southWest);
+
+        // Next, we need to get the size of the polygon
+        let size = bottomRight.subtract(topLeft);
+        
+        console.log('topLeft', topLeft)
+        console.log('bottomRight', bottomRight)
+        console.log('size', size)
+
+        // Get the image element
+        let imageElement = document.querySelector('img.leaflet-image-layer');
+                
+        // Create a canvas element
+        let canvas = document.createElement('canvas');
+    
+
+
+
+        // Set the canvas width and height to the polygon bounds
+        canvas.width = polygonBounds._northEast.lng - polygonBounds._southWest.lng;
+
+        // Get the canvas context
+        let context = canvas.getContext('2d');
+
+        // Draw the image onto the canvas
+        context.drawImage(imageElement, 0, 0, canvas.width, canvas.height);
+
+        // Get the image data from the canvas
+        // let imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+        // Create a new image element
+        let newImage = new Image();
+
+        // Set the source of the new image to the image data
+        newImage.src = canvas.toDataURL();
+        newImage.crossOrigin = "anonymous";
+
+        // Append the new image to the body
+        document.body.appendChild(newImage);
+        console.log('-----------------------------------------------------------')
+    });
+
+    </script>
+    
+</body>
+</html>
