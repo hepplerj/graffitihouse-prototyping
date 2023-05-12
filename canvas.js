@@ -14,7 +14,7 @@ canvas.height = 700;
 // Provide a ipsum image to the canvas backround
 const img = new Image();
 img.crossOrigin = "anonymous";
-img.src = 'https://picsum.photos/id/241/600/600';
+img.src = '33a0c8_2a20866012684002852095b34c4223f6.png';
 img.onload = function() {
     ctx.drawImage(img, 0, 0);
 };
